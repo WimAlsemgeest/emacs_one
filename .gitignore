@@ -10,5 +10,8 @@
 # Undo-tree save-files
 *.~undo-tree
 
-# Created config.el
+# Other files wich are created
 config.el
+history
+places
+recentf

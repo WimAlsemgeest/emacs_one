@@ -12,13 +12,16 @@
   + Menu bar mode (deze blijft nog even aan zolang ik nog zoekende ben).
   + Tool bar mode
   + scroll bar mode
-  
+- Laat geen UI dialoog schermen zien
+- Automatisch buffers bij werken als ze extern gewijzigd worden.  
 #+begin_src emacs-lisp
   (setq inhibit-startup-message t)
   (setq visible-bell t)
   ;; (menu-bar-mode -1)
   (tool-bar-mode -1)
   (scroll-bar-mode -1)
+  (setq use-dialog-box nil)
+  (global-auto-revert-mode 1)
 #+end_src
 
 ** Regelnummers
