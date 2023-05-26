@@ -27,6 +27,33 @@ Laat regelnummer in alle buffers zien.
   (global-display-line-numbers-mode 1)
 #+end_src
 
+** Recente bestanden onthouden
+Met het commando (recent-open-files) krijgen we een lijst met de laatst gebruikte bestanden. Kies het bestand door het nummer te kiezen.
+*** TODO Toets combinatie voor recent-open-files maken.
+#+begin_src emacs-lisp
+  (recentf-mode 1)
+#+end_src
+
+** Mini-buffer commando historie
+We gebruiken de mini-buffer heel veel in Emacs. Handig om door de historie te kunnen wandelen.
+Als de mode aan staat kunnen we met ~M-n~ (next-history-element) en ~M-p~ (previous-history-element) gebruiken om door de lijst te wandelen.
+#+begin_src emacs-lisp
+  (setq history-length 50)
+  (savehist-mode 1)
+#+end_src
+
+** Herhinder de laatste plek waar we bewerking deden
+#+begin_src emacs-lisp
+  (save-place-mode 1)
+#+end_src
+
+** Verplaats de locatie van "custom file"
+Emacs zal soms zelf dingen toevoegen aan de "init.el". Dat is niet wenselijk. We kunnen deze gegevens opslaan in een apart bestand.
+#+begin_src emacs-lisp
+  (setq custom-file (locate-user-emacs-file "custom-vars.el"))
+  (load custom-file 'noerror 'nomessage)
+#+end_src
+
 ** Instellen van een thema
 We gebruiken de nieuwe ingebouwde modus-vivendi
 #+begin_src emacs-lisp
