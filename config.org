@@ -4,6 +4,7 @@
 
 * Package management
 ** Stel package.el in om met MELPA te werken.
+*** derde heading
 
 ** Algemene instellingen
 - Onderdruk start bericht
@@ -45,7 +46,7 @@ Als de mode aan staat kunnen we met ~M-n~ (next-history-element) en ~M-p~ (previ
   (savehist-mode 1)
 #+end_src
 
-** Herhinder de laatste plek waar we bewerking deden
+** Herrinder de laatste plek waar we bewerking deden
 #+begin_src emacs-lisp
   (save-place-mode 1)
 #+end_src
@@ -58,7 +59,31 @@ Emacs zal soms zelf dingen toevoegen aan de "init.el". Dat is niet wenselijk. We
 #+end_src
 
 ** Instellen van een thema
-We gebruiken de nieuwe ingebouwde modus-vivendi
+We gebruiken de nieuwe ingebouwde modus-vivendi. Er bestaan twee variaties 'modus-vivendi' en 'modus-operandi', resp. een donkere en een licht thema.
+Alles wat we willen instellen in het theme moeten we configureren voordat het thema geladen wordt. Om te kunnen wisselen is er een commando (modus-theme-toggle). Dit wisselt tussen het lichte en donkere thema.
+
+Als laatste definieren we een functie toets F5 om te wisselen tussen de thema's.
 #+begin_src emacs-lisp
+
+  (require 'modus-themes)
+
+
+  (setq modus-themes-common-palette-overrides
+	    '((bg-mode-line-active bg-blue-subtle)
+	      (fg-mode-line-active blue-warmer)
+	      (border-mode-line-active bg-blue-subtle)))
+
+  (setq modus-themes-common-palette-overrides
+	    '((comment yellow-cooler)
+	      (string green-cooler)))
+
+  (setq modus-themes-common-palette-overrides
+	'((fg-heading-1 blue-warmer)
+	  (fg-heading-2 yellow-cooler)
+	  (fg-heading-3 cyan-cooler)))
+
   (load-theme 'modus-vivendi t)
+
+      (define-key global-map (kbd "<f5>") #'modus-themes-toggle) 
+
 #+end_src

@@ -15,3 +15,5 @@ config.el
 history
 places
 recentf
+elpa/
+init.back
