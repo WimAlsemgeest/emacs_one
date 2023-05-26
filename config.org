@@ -1,0 +1,34 @@
+#+TITLE: Wim's Emacs configuratie
+#+AUTHOR: Wim Alsemgeest
+
+
+* Package management
+** Stel package.el in om met MELPA te werken.
+
+** Algemene instellingen
+- Onderdruk start bericht
+- Flits als de bel gaat.
+- Zet wat modes uit
+  + Menu bar mode (deze blijft nog even aan zolang ik nog zoekende ben).
+  + Tool bar mode
+  + scroll bar mode
+  
+#+begin_src emacs-lisp
+  (setq inhibit-startup-message t)
+  (setq visible-bell t)
+  ;; (menu-bar-mode -1)
+  (tool-bar-mode -1)
+  (scroll-bar-mode -1)
+#+end_src
+
+** Regelnummers
+Laat regelnummer in alle buffers zien.
+#+begin_src emacs-lisp
+  (global-display-line-numbers-mode 1)
+#+end_src
+
+** Instellen van een thema
+We gebruiken de nieuwe ingebouwde modus-vivendi
+#+begin_src emacs-lisp
+  (load-theme 'modus-vivendi t)
+#+end_src
