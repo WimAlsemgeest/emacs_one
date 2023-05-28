@@ -86,49 +86,140 @@
 (add-hook 'rust-mode-hook
 	  (lambda () (prettify-symbols-mode)))
 ;; ----- Setup Org mode --------------------------------------------------------
+;; Set the size of the headings
+(with-eval-after-load
+    (require 'org-faces))
+
 (defun wa/org-mode-setup ()
   (org-indent-mode)
   (variable-pitch-mode 1)
   (auto-fill-mode 0)
   (visual-line-mode 1))
 
+(defun wa/org-font-setup ()
+  ;; Replace list hyphen with dots
+  (font-lock-add-keywords 'org-mode
+			  '(("^ *\\([-]\\) "
+			   (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+
+
+  (dolist (face '((org-level-1 . 1.2)
+                  (org-level-2 . 1.15)
+                  (org-level-3 . 1.1)
+                  (org-level-4 . 1.05)
+                  (org-level-5 . 1.0)
+                  (org-level-6 . 0.95)
+                  (org-level-7 . 0.9)
+                  (org-level-8 . 0.8)))
+  (set-face-attribute (car face) nil :font "Liberation Serif" :weight 'regular :height (cdr face)))
+
+  ;; Ensure that anything that should be fixed-pitch in Org files appears that way
+  (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-table nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
+
+  
 (use-package org
   :hook (org-mode . wa/org-mode-setup)
   :config
   (setq org-ellipsis " ▾"
-	org-hide-emphasis-markers t))
+	org-hide-emphasis-markers t)
+
+  (setq org-agenda-start-with-log-mode t)
+  (setq org-log-done 'time)
+  (setq org-log-into-drawer t)
+  
+  (setq org-agenda-files
+	'("~/Nextcloud/OrgFiles/tasks.org"
+	  "~/Nextcloud/OrgFiles/birthdays.org"))
+
+  (setq org-todo-keywords
+	'((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
+	  (sequencd "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
+
+  (setq org-refile-targets
+	'(("archive.org" :maxlevel . 1)))
+
+  ;; Save Org buffers after refiling!
+  (advice-add 'org-refile :after 'org-save-all-org-buffers)
+    
+  (setq org-tag-alist
+	'((:startgroup)
+					; put mutually exclusive tags here
+	  (:endgroup)
+	  ("@errand" . ?E)
+	  ("@home" . ?H)
+	  ("@work" . ?W)
+	  ("agenda" . ?a)
+	  ("planning" . ?p)
+	  ("publish" . ?P)
+	  ("batch" . ?b)
+	  ("note" . ?n)
+	  ("idea" . ?i)
+	  ("thinking" . ?t)
+	  ("recurring" . ?r)))
+
+  ;; Configuration of custom agenda views
+  (setq org-agenda-custom-commands
+	'(("d" "Dashboard"
+	   ((agenda "" ((org-deadline-warning-days 7)))
+	    (todo "NEXT"
+		  ((org-agenda-overriding-header "Next Tasks")))
+	    (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
+
+	  ("n" "Next Tasks"
+	   ((todo "NEXT"
+		  ((org-agenda-overriding-header "Next Tasks")))))
+
+	  ("W" "Work Tasks" tags-todo "+work")
+
+	  ;; Low-effort next actions
+	  ("e" tags-todo "+TODO=\"NEXT\"+Effort<15&+Effort>0"
+	   ((org-agenda-overriding-header "Low Effort Tasks")
+	    (org-agenda-max-todos 20)
+	    (org-agenda-files org-agenda-files)))
+
+	  ("w" "Workflow Status"
+	   ((todo "WAIT"
+		  ((org-agenda-overriding-header "Wait on External")
+		   (org-agenda-files org-agenda-files)))
+	    (todo "REVIEW"
+		  ((org-agenda-overriding-header "In Review")
+		   (org-agenda-files org-agenda-files)))
+	    (todo "PLAN"
+		  ((org-agenda-overriding-header "In PLanning")
+		   (org-agenda-todo-list-sublevels nil)
+		   (org-agenda-files org-agenda-files)))
+	    (todo "BACKLOG"
+		  ((org-agenda-overriding-header "Project Backlog")
+		   (org-agenda-todo-list-sublevels nil)
+		   (org-agenda-files org-agenda-files)))
+	    (todo "READY"
+		  ((org-agenda-overriding-header "Ready for Work")
+		   (org-agenda-files org-agenda-files)))
+	    (todo "ACTIVE"
+		  ((org-agenda-overriding-header "Active Projects")
+		   (org-agenda-files org-agenda-files)))
+	    (todo "COMPLETED"
+		  ((org-agenda-overriding-header "Completed Projects")
+		   (org-agenda-files org-agenda-files)))
+	    (todo "CANC"
+		  ((org-agenda-overriding-header "Cancelled Projects")
+		   (org-agenda-files org-agenda-files)))))))
+  
+  (wa/org-font-setup))
+
 (use-package org-bullets
   :after org
   :hook (org-mode . org-bullets-mode)
   :custom
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
 
-;; Replace list hyphen with dots
-(font-lock-add-keywords 'org-mode
-			'(("^ *\\([-]\\) "
-			   (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
-(with-eval-after-load
-    (require 'org-faces))
 
-(dolist (face '((org-level-1 . 1.3)
-                (org-level-2 . 1.2)
-                (org-level-3 . 1.15)
-                (org-level-4 . 1.1)
-                (org-level-5 . 1.0)
-                (org-level-6 . 0.95)
-                (org-level-7 . 0.9)
-                (org-level-8 . 0.8)))
-  (set-face-attribute (car face) nil :font "Liberation Serif" :weight 'regular :height (cdr face)))
-
-;; Ensure that anything that should be fixed-pitch in Org files appears that way
-(set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
-(set-face-attribute 'org-table nil :inherit 'fixed-pitch)
-(set-face-attribute 'org-formula nil :inherit 'fixed-pitch)
-(set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch))
-(set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-(set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-(set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-(set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
 
 ;; Center the text in the buffer with some room
 (defun wa/org-mode-visual-fill ()
@@ -139,6 +230,15 @@
 (use-package visual-fill-column
   :defer t
   :hook (org-mode . wa/org-mode-visual-fill))
+
+;; ----- Setup IRC Chat --------------------------------------------------------
+(setq erc-server "irc.libera.chat"
+      erc-nick "WimA"
+      erc-user-full-name "Wim Alsemgeest"
+      erc-track-shorten-start 8
+      erc-autojoin-channels-alist '(("irc.libera.chat" "#systemcrafters" "#emacs"))
+      erc-kill-buffer-on-part t
+      erc-auto-query 'bury)
 
 ;; ----- Setup the theme -------------------------------------------------------
 (require 'modus-themes)
@@ -153,9 +253,9 @@
       modus-themes-completions '((t . (extrabold)))
       modus-themes-prompts nil
       modus-themes-headings
-      '((agenda-structure . (variable-pitch light 2.2))
-	(agenda-date . (variable-pitch regular 1.3))
-	(t . (regular 1.15))))
+      '((agenda-structure . (variable-pitch light 1.5))
+	(agenda-date . (variable-pitch regular 1.1))
+	(t . (regular 1.05))))
 
 (setq modus-themes-common-palette-overrides
       '((cursor magenta-cooler)
