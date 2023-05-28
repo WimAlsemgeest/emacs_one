@@ -16,4 +16,5 @@ history
 places
 recentf
 elpa/
-init.back
+*.back
+*.old
