@@ -231,6 +231,14 @@
   :defer t
   :hook (org-mode . wa/org-mode-visual-fill))
 
+;; ----- Setup Org-babel -------------------------------------------------------
+(require 'org-tempo)
+
+(add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+(add-to-list 'org-structure-template-alist '("cc" . "src C"))
+
+
 ;; ----- Setup IRC Chat --------------------------------------------------------
 (setq erc-server "irc.libera.chat"
       erc-nick "WimA"
