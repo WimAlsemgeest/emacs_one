@@ -2,6 +2,22 @@
 ;; 26-05-2023
 ;; -----------------------------------------------------------------------------
 
+;; ----- Add melpa to the installation -----------------------------------------
+(require 'package)
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+			 ("org" . "https://orgmode.org/elpa/")
+			 ("elpa" . "https://elpa.gnu.org/packages/")))
+
+(package-initialize)
+  (unless package-archive-contents
+    (package-refresh-contents))
+
+(unless (package-installed-p 'use-package)
+  (package-install 'use-package))
+
+(require 'use-package)
+(setq use-package-always-ensure t)
+
 ;; ----- Onderdruk startup bericht ---------------------------------------------
 (setq inhibit-startup-message t)
 
@@ -12,14 +28,28 @@
 ;; (menu-bar-mode -1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
+(set-fringe-mode 10)
 (setq use-dialog-box nil)
 
 ;; ----- Automatisch buffers bijwerken als die extern gewijzigd worden ---------
 (global-auto-revert-mode 1)
 
+;; (toggle-frame-maximized)
+
+;; ESC key quit commands same as C-x g
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
 ;; ----- Laat regel en kolom nummers zien --------------------------------------
 (global-display-line-numbers-mode 1)
 (setq column-number-mode t)
+
+;; ----- Disable line numbers for some modes
+(dolist (mode '(org-mode-hook
+		term-mode-hook
+		shell-mode-hook
+		treemacs-mode-hook
+		eshell-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
 ;; ----- Onthoud de laatste gebruikte bestanden --------------------------------
 ;; Met het commendo recent-open-files krijgen we een lijst met de laatst
@@ -39,6 +69,78 @@
 (setq custom-file (locate-user-emacs-file "custom-vars.el"))
 (load custom-file 'noerror 'nomessage)
 
+(use-package rainbow-delimiters
+  :hook (prog-mode . rainbow-delimiters-mode))
+
+
+;; Let us setup a font
+(set-face-attribute 'default nil :font "FiraCode Nerd Font" :height 120)
+(set-face-attribute 'fixed-pitch nil :font "FiraCode Nerd Font" :height 120)
+(set-face-attribute 'variable-pitch nil :font "Liberation Serif" :height 130 :weight 'regular)
+
+;; ----- Setup rust mode -------------------------------------------------------
+(require 'rust-mode)
+(add-hook 'rust-mode-hook
+	  (lambda () (setq indent-tabs-mode nil)))
+(setq rust-format-on-save t)
+(add-hook 'rust-mode-hook
+	  (lambda () (prettify-symbols-mode)))
+;; ----- Setup Org mode --------------------------------------------------------
+(defun wa/org-mode-setup ()
+  (org-indent-mode)
+  (variable-pitch-mode 1)
+  (auto-fill-mode 0)
+  (visual-line-mode 1))
+
+(use-package org
+  :hook (org-mode . wa/org-mode-setup)
+  :config
+  (setq org-ellipsis " ▾"
+	org-hide-emphasis-markers t))
+(use-package org-bullets
+  :after org
+  :hook (org-mode . org-bullets-mode)
+  :custom
+  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+
+;; Replace list hyphen with dots
+(font-lock-add-keywords 'org-mode
+			'(("^ *\\([-]\\) "
+			   (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+(with-eval-after-load
+    (require 'org-faces))
+
+(dolist (face '((org-level-1 . 1.3)
+                (org-level-2 . 1.2)
+                (org-level-3 . 1.15)
+                (org-level-4 . 1.1)
+                (org-level-5 . 1.0)
+                (org-level-6 . 0.95)
+                (org-level-7 . 0.9)
+                (org-level-8 . 0.8)))
+  (set-face-attribute (car face) nil :font "Liberation Serif" :weight 'regular :height (cdr face)))
+
+;; Ensure that anything that should be fixed-pitch in Org files appears that way
+(set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+(set-face-attribute 'org-table nil :inherit 'fixed-pitch)
+(set-face-attribute 'org-formula nil :inherit 'fixed-pitch)
+(set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch))
+(set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+(set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+(set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+(set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
+
+;; Center the text in the buffer with some room
+(defun wa/org-mode-visual-fill ()
+  (setq visual-fill-column-width 100
+	visual-fill-column-center-text t)
+  (visual-fill-column-mode 1))
+
+(use-package visual-fill-column
+  :defer t
+  :hook (org-mode . wa/org-mode-visual-fill))
+
+;; ----- Setup the theme -------------------------------------------------------
 (require 'modus-themes)
 
 (setq modus-themes-custom-auto-reload nil

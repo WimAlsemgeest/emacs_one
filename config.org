@@ -1,66 +1,210 @@
-#+TITLE: Wim's Emacs configuratie
+#+TITLE: Wim's Emacs configuration
 #+AUTHOR: Wim Alsemgeest
+#+DATE: 27-05-2023
 
+* Content
+#+toc: headlines 1
 
 * Package management
-** Stel package.el in om met MELPA te werken.
-*** derde heading
-
-** Algemene instellingen
-- Onderdruk start bericht
-- Flits als de bel gaat.
-- Zet wat modes uit
-  + Menu bar mode (deze blijft nog even aan zolang ik nog zoekende ben).
-  + Tool bar mode
-  + scroll bar mode
-- Laat geen UI dialoog schermen zien
-- Automatisch buffers bij werken als ze extern gewijzigd worden.  
+** Setup packaging
+*** Setup package sources
 #+begin_src emacs-lisp
-  (setq inhibit-startup-message t)
-  (setq visible-bell t)
+  (require 'package)
+  (setq package-archives '(("melpa" . "https://melpa.org/packages/")
+			   ("org" . "https://orgmode.org/elpa/")
+			   ("elpa" . "https://elpa.gnu.org/packages/")))
+#+end_src
+
+*** Initialize the packages
+#+begin_src emacs-lisp
+  (package-initialize)
+  (unless package-archive-contents
+    (package-refresh-contents))
+#+end_src
+
+*** Load use-package to manage packages
+Github pagina van [[https://github.com/jwiegley/use-package][Use-package]]
+#+begin_src emacs-lisp
+  (unless (package-installed-p 'use-package)
+    (package-install 'use-package))
+
+  (require 'use-package)
+  (setq use-package-always-ensure t)
+#+end_src
+
+** Simplyfi the UI
+
+*** Supress the startup message
+#+begin_src emacs-lisp
+    (setq inhibit-startup-message t)  
+#+end_src
+
+*** Turn off the menubar, toolbar and scrollbar.
+#+begin_src emacs-lisp
   ;; (menu-bar-mode -1)
   (tool-bar-mode -1)
   (scroll-bar-mode -1)
-  (setq use-dialog-box nil)
-  (global-auto-revert-mode 1)
+  (set-fringe-mode 10)
 #+end_src
 
-** Regelnummers
-Laat regelnummer in alle buffers zien.
+*** Turn on visual bell
+#+begin_src emacs-lisp
+    (setq visible-bell t)  
+#+end_src
+
+*** Do not show UI dialogs
+#+begin_src emacs-lisp
+    (setq use-dialog-box nil)  
+#+end_src
+
+*** Automatic revert buffers when they are changed externaly 
+#+begin_src emacs-lisp
+    (global-auto-revert-mode 1)
+#+end_src
+
+*** Make ESC quit prompts
+#+begin_src
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+#+end_src
+** Setup the UI
+*** Maximize Emacs on the screen
+#+begin_src
+(toggle-frame-maximized)
+#+end_src
+
+*** linenumbers and column numbers on all buffers
 #+begin_src emacs-lisp
   (global-display-line-numbers-mode 1)
+  (setq column-number-mode t)
 #+end_src
 
-** Recente bestanden onthouden
-Met het commando (recent-open-files) krijgen we een lijst met de laatst gebruikte bestanden. Kies het bestand door het nummer te kiezen.
-*** TODO Toets combinatie voor recent-open-files maken.
+*** Remember the recent edited files
+With the command (recent-open-files) we get a list of the last used files. Choose a number to open it.
+**** TODO Toets combinatie voor recent-open-files maken.
 #+begin_src emacs-lisp
   (recentf-mode 1)
 #+end_src
 
-** Mini-buffer commando historie
-We gebruiken de mini-buffer heel veel in Emacs. Handig om door de historie te kunnen wandelen.
-Als de mode aan staat kunnen we met ~M-n~ (next-history-element) en ~M-p~ (previous-history-element) gebruiken om door de lijst te wandelen.
+*** Mini-buffer command history
+We use the mini-buffer a lot. Handy to walk through the history en reuse the commands.
+Use ~M-n~ (next-history-element) and ~M-p~ (previous-history-element) to walk through the history.
 #+begin_src emacs-lisp
   (setq history-length 50)
   (savehist-mode 1)
 #+end_src
 
-** Herrinder de laatste plek waar we bewerking deden
+*** Remember the last place in the file we were.
 #+begin_src emacs-lisp
   (save-place-mode 1)
 #+end_src
 
-** Verplaats de locatie van "custom file"
-Emacs zal soms zelf dingen toevoegen aan de "init.el". Dat is niet wenselijk. We kunnen deze gegevens opslaan in een apart bestand.
+*** Change the location of the "custom-vars.el" file that Emacs use.
 #+begin_src emacs-lisp
   (setq custom-file (locate-user-emacs-file "custom-vars.el"))
   (load custom-file 'noerror 'nomessage)
 #+end_src
 
-** Instellen van een thema
-We gebruiken de nieuwe ingebouwde modus-vivendi. Er bestaan twee variaties 'modus-vivendi' en 'modus-operandi', resp. een donkere en een licht thema.
-Alles wat we willen instellen in het theme moeten we configureren voordat het thema geladen wordt. Om te kunnen wisselen is er een commando (modus-theme-toggle). Dit wisselt tussen het lichte en donkere thema.
+*** Rainbow delimiters
+#+begin_src emacs-lisp
+  (use-package rainbow-delimiters
+  :hook (prog-mode . rainbow-delimiters-mode)
+#+end_src
+
+*** Let us set a font
+#+begin_src emacs-lisp
+  (set-face-attribute 'default nil :font "FiraCode Nerd Font" :height 120)
+  (set-face-attribute 'fixed-pitch nil :font "FiraCode Nerd Font" :height 120)
+  (set-face-attribute 'varable-pitch nil :font "Cantarell" :height 120 :weight 'regular)
+#+end_src
+
+** Setup Org mode
+*** Load org mode from package
+
+- Set indent mode
+- Set varable pitch mode
+- Turn off autofill mode
+- Set visual line mode
+
+Also replace the ellipsis at the end of a header.
+#+begin_src emacs-lisp
+  (defun wa/org-mode-setup ()
+    (org-indent-mode)
+    (variable-pitch-mode 1)
+    (visual-line-mode 1)
+
+  (use-package org
+    :hook (org-mode . wa/org-mode-setup)
+    :config
+    (setq org-ellipsis " ▾"
+	  org-hide-emphasis-markers t))
+#+end_src
+*** Load the org-bullets to replace the stars on the headers
+#+begin_src emacs-lisp
+(use-package org-bullets
+  :after org
+  :hook (org-mode . org-bullets-mode)
+  :custom
+  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+#+end_src
+
+Dit is zomaar wat tekst *met vette* tekst.
+| Name   | Age | Uses Emacs |
+| Wim    |  61 | Yes        |
+| Gerrit |  35 | No         |
+
+This is italic
+
+- First imtem,
+- Second item
+- [ ] Third item
+
+*** Setup face attributes
+Set the size of the headers to different heigts, and use a different font.
+#+begin_src emacs-lisp
+  (dolist (face '((org-level-1 . 1.3)
+                (org-level-2 . 1.2)
+                (org-level-3 . 1.15)
+                (org-level-4 . 1.1)
+                (org-level-5 . 1.0)
+                (org-level-6 . 0.95)
+                (org-level-7 . 0.9)
+                (org-level-8 . 0.8)))
+    (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular : height (cdr face)))
+#+end_src
+
+*** Ensure that anything that should be fixed-pitch in Org mode appears that way
+#+begin_src emacs-lisp
+  (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-table nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-indent nil :inherit '(org-hide fixed-pitch))
+  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
+#+end_src
+
+*** Center the text in the buffer
+#+begin_src emacs-lisp
+(defun wa/org-mode-visual-fill ()
+  (setq visual-fill-column-width 100
+	visual-fill-column-center-text t)
+  (visual-fill-column-mode 1))
+
+(use-package visual-fill-mode
+  :defer t
+  :hook (org-mode . wa/org-mode-visual-fill))
+#+end_src
+
+*** Replace list hyphen with dots
+#+begin_src emacs-lisp
+(font-lock-add-keywords 'org-mode
+			'(("^ *\\([-]\\) "
+			   (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+#+end_src
+
+** Setup a theme
+We gebruiken de nieuwe ingebouwde modus-vivendi. Er bestaan twee variaties 'modus-vivendi' en 'modus-operandi', resp. een donkere en een licht thema. Alles wat we willen instellen in het theme moeten we configureren voordat het thema geladen wordt. Om te kunnen wisselen is er een commando (modus-theme-toggle). Dit wisselt tussen het lichte en donkere thema.
 
 Als laatste definieren we een functie toets F5 om te wisselen tussen de thema's.
 #+begin_src emacs-lisp
