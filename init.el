@@ -1,3 +1,19 @@
+(defvar wa/default-font-size 120)
+  (defvar wa/default-variable-font-size 120)
+  ;; Make frame transparency overridable
+  (defvar wa/frame-transparency '(90 . 90))
+
+  (setq gc-cons-threshold(* 50 1000 1000))
+
+  (defun wa/display-startup-time ()
+  (message "Emacs loaded in %s with %d garbage collections."
+	   (format "%.2f seconds"
+		   (float-time
+		     (time-subtract after-init-time before-init-time)))
+	   gcs-done))
+
+(add-hook 'emacs-startup-hook #'wa/display-startup-time)
+
 (require 'package)
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
 			 ("org" . "https://orgmode.org/elpa/")
@@ -25,14 +41,77 @@
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 (global-display-line-numbers-mode 1)
-  (setq column-number-mode t)
+(setq column-number-mode t)
 
-  (dolist (mode '(org-mode-hook
-                  term-mode-hook
-                  shell-mode-hook
-                  treemacs-mode-hook
-                  eshell-mode-hook))
-    (add-hook mode (lambda () (display-line-numbers-mode 0))))
+(dolist (mode '(org-mode-hook
+                term-mode-hook
+                shell-mode-hook
+                treemacs-mode-hook
+                eshell-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
+(set-frame-parameter (selected-frame) 'alpha wa/frame-transparency)
+(add-to-list 'default-frame-alist `(alpha . ,wa/frame-transparency))
+(set-frame-parameter (selected-frame) 'fullscreen 'maximized)
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+
+(use-package ivy
+:diminish
+:bind (("C-s" . swiper)
+       :map ivy-minibuffer-map
+       ("TAB" . ivy-alt-done)
+       ("C-l" . ivy-alt-done)
+       ("C-j" . ivy-next-line)
+       ("C-k" . ivy-previous-line)
+       :map ivy-switch-buffer-map
+       ("C-k" . ivy-previous-line)
+       ("C-l" . ivy-done)
+       ("C-d" . ivy-switch-buffer-kill)
+       :map ivy-reverse-i-search-map
+       ("C-k" . ivy-previous-line)
+       ("C-d" . ivy-reverse-i-search-kill))
+:config
+(ivy-mode 1))
+
+(use-package ivy-rich
+  :init
+  (ivy-rich-mode 1))
+
+(use-package counsel
+:bind (("M-x" . counsel-M-x)
+       ("C-x b" . counsel-ibuffer)
+       ("C-x C-f" . counsel-find-file)
+       :map minibuffer-local-map
+       ("C-r" . 'counsel-minibuffer-history))
+:config
+(setq ivy-initial-inputs-alist nil)) ;; Don't start searches with ^
+
+(use-package which-key
+  :init (which-key-mode)
+  :diminish which-key-mode
+  :config
+  (setq which-key-idle-delay 0.3))
+
+(use-package helpful
+  :commands (helpful-callable helpful-variable helpful-command helpful-key)
+  :custom
+  (counsel-describe-function-function #'helpful-callable)
+  (counsel-describe-variable-function #'helpful-variable)
+  :bind
+  ([remap describe-function] . counsel-describe-function)
+  ([remap describe-command] . helpful-command)
+  ([remap describe-variable] . counsel-describe-variable)
+  ([remap describe-key] . helpful-key))
+
+(use-package doom-themes
+  :init
+  (load-theme 'doom-palenight t))
+
+(use-package all-the-icons)
+
+(use-package doom-modeline
+  :init (doom-modeline-mode 1)
+  :custom ((doom-modeline-height 25)))
 
 (recentf-mode 1)
 
@@ -44,9 +123,13 @@
 (setq custom-file (locate-user-emacs-file "custom-vars.el"))
 (load custom-file 'noerror 'nomessage)
 
-(set-face-attribute 'default nil :font "FiraCode Nerd Font" :height 120)
-(set-face-attribute 'fixed-pitch nil :font "FiraCode Nerd Font" :height 110)
-(set-face-attribute 'variable-pitch nil :font "Liberation Serif" :height 130 :weight 'regular)
+(set-face-attribute 'default nil :font "FiraCode Nerd Font" :height wa/default-font-size)
+(set-face-attribute 'fixed-pitch nil :font "FiraCode Nerd Font" :height wa/default-font-size)
+(set-face-attribute 'variable-pitch nil :font "Source Code Pro" :height wa/default-variable-font-size :weight 'regular)
+
+(use-package general)
+(general-define-key
+ "C-M-j" 'counsel-switch-buffer)
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
@@ -204,110 +287,3 @@
       erc-autojoin-channels-alist '(("irc.libera.chat" "#systemcrafters" "#emacs"))
       erc-kill-buffer-on-part t
       erc-auto-query 'bury)
-
-(use-package modus-themes
-        :ensure t
-        :config
-        (setq modus-themes-custom-auto-reload nil
-            modus-themes-to-toggle '(modus-operandi modus-vivendi)
-            modus-themes-mixed-fonts t
-            modus-themes-variable-pitch-ui nil
-            modus-themes-italic-constructs t
-            modus-themes-bold-constructs nil
-            modus-themes-org-blocks nil
-            modus-themes-completions '((t . (extrabold)))
-            modus-themes-prompts nil
-            modus-themes-headings
-            '((agenda-structure . (variable-pitch light 1.5))
-              (agenda-date . (variable-pitch regular 1.1))
-              (t . (regular 1.05))))
-
-        (setq modus-themes-common-palette-overrides
-            '((cursor magenta-cooler)
-
-              ;; Make the fringe invisible
-              (fringe unspecified)
-
-              ;; Make line numbers less intense and add a shade of cyan
-              ;; for the current line number
-              (fg-line-number-inactive "gray50")
-              (fg-line-number-active cyan-cooler)
-              (bg-line-number-inactive unspecified)
-              (bg-line-number-active unspecified)
-
-              ;; Make the current line of 'hl-line-mode' a fine shade of
-              ;; gray
-              (bg-hl-line bg-dim)
-
-              ;; Make the region hav a cyan-green background with no
-              ;; specific foreground (use foreground of underlying text).
-              ;; "bg-sage" refers to Salvia officinalis, else the common
-              ;; sage.
-              (bg-region bg-sage)
-              (fg-region unspecified)
-
-              ;; Make matching parentheses a shade of magenta. It
-              ;; complements the region nicely.
-              (bg-paren-match bg-magenta-intense)
-
-              ;; Make email citations faint and neutralo, reducing the
-              ;; default four colors to two; make mail headers cyan-blue
-              (mail-cite-0 fg-dim)
-              (mail-cite-1 blue-faint)
-              (mail-cite-2 fg-dim)
-              (mail-cite-3 blue-faint)
-              (mail-part cyan-warmer)
-              (mail-recipient blue-warmer)
-              (mail-subject magenta-cooler)
-              (mail-other cyan-warmer)
-
-              ;; Change dates to a set of more subtle combinations
-              (date-deadline magenta-cooler)
-              (date-scheduled magneta)
-              (date-weekday fg-main)
-              (date-event fg-dim)
-              (date-now blue faint)
-
-              ;; Make tags (Org) less colorful and tables look the same as
-              ;; the default foreground
-              (prose-done cyan-cooler)
-              (prose-tag fg-dim)
-              (prose-table fg-main)
-
-              ;; Make headings less colorful
-              (fg-heading-2 blue-faint)
-              (fg-heading-3 magenta-faint)
-              (fg-heading-4 blue-faint)
-              (fg-heading-5 magenta-faint)
-              (fg-heading-6 blue-faint)
-              (fg-heading-7 magenta-faint)
-              (fg-heading-8 blue-faint)
-
-              ;; Make the active mode line a fine shade of lavender
-              ;; (purple) and tone down the gray of the inactive mode lines.
-              (bg-mode-line-active bg-lavender)
-              (border-mode-line-active bg-lavender)
-              (bg-mode-line-inactive bd-dim)
-              (border-mode-line-inactive bg-inactive)
-
-              ;; Make the prompts a shade of magenta, to fit in nicely with
-              ;; the overal blue-cyan-purple style of the other overrides.
-              ;; Add a nuanced background as well.
-              (bg-prompt bg-magenta-nuanced)
-              (fg-prompt magenta-cooler)
-
-              ;; Tweak some settings for constistency.
-              (name blue-warmer)
-              (identifier magenta-faint)
-              (keybind magenta-cooler)
-              (accent-0 magenta-cooler)
-              (accent-1 cyan-cooler)
-              (accent-2 blue-warmer)
-              (accent-3 red-cooler))))
-
-    (custom-set-faces
-     '(mode-line ((t :box (:style released-button)))))
-
-    (load-theme 'modus-vivendi t)
-
-    (define-key global-map (kbd "<f5>") #'modus-themes-toggle)
