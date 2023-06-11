@@ -3,10 +3,8 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   '("5f128efd37c6a87cd4ad8e8b7f2afaba425425524a68133ac0efd87291d05874" "02f57ef0a20b7f61adce51445b68b2a7e832648ce2e7efb19d217b6454c1b644" default))
  '(package-selected-packages
-   '(marginalia orderless vertico ivy rainbow-mode doom-themes doom-modeline helpful rainbow-delimiters which-key evil-collection general evil-tutor evil-colletion evil modus-themes use-package)))
+   '(magit counsel-projectile projectile flycheck yasnippet company rustic lsp-ui lsp-mode treemacs winum which-key vertico use-package rainbow-mode rainbow-delimiters orderless modus-themes marginalia ivy helpful general evil-tutor evil-collection doom-themes doom-modeline)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
