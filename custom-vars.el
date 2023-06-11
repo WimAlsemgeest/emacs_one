@@ -6,7 +6,7 @@
  '(custom-safe-themes
    '("5f128efd37c6a87cd4ad8e8b7f2afaba425425524a68133ac0efd87291d05874" "02f57ef0a20b7f61adce51445b68b2a7e832648ce2e7efb19d217b6454c1b644" default))
  '(package-selected-packages
-   '(doom-themes doom-modeline helpful rainbow-delimiters which-key evil-collection general evil-tutor evil-colletion evil modus-themes use-package)))
+   '(marginalia orderless vertico ivy rainbow-mode doom-themes doom-modeline helpful rainbow-delimiters which-key evil-collection general evil-tutor evil-colletion evil modus-themes use-package)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
